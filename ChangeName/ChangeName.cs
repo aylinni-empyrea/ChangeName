@@ -1,15 +1,18 @@
-﻿using System;
+﻿/*
+ * Credit to Simon311 for original plugin.
+*/
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using TShockAPI;
+using System.Reflection;
 using Terraria;
 using TerrariaApi.Server;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Reflection;
+using TShockAPI;
 
 namespace ChangeName
 {
-	[ApiVersion(1, 21)]
+    [ApiVersion(1, 22)]
 
 	public class ChangeName : TerrariaPlugin
 	{
@@ -23,7 +26,7 @@ namespace ChangeName
 		}
 		public override string Author
 		{
-			get { return "Simon311"; }
+			get { return "Zaicon"; }
 		}
 		public override string Description
 		{
