@@ -12,7 +12,7 @@ using TShockAPI;
 
 namespace ChangeName
 {
-    [ApiVersion(1, 22)]
+    [ApiVersion(1, 23)]
 
 	public class ChangeName : TerrariaPlugin
 	{
