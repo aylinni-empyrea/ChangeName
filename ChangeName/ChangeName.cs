@@ -33,8 +33,6 @@ namespace ChangeName
 			get { return "Changing names"; }
 		}
 
-		Dictionary<string, string> oldNames = new Dictionary<string, string>();
-
 		public ChangeName(Main game)
 			: base(game)
 		{
@@ -46,12 +44,13 @@ namespace ChangeName
 			Commands.ChatCommands.Add(new Command("changenames", ChanName, "chname"));
 			Commands.ChatCommands.Add(new Command("oldnames", OldName, "oldname"));
 			Commands.ChatCommands.Add(new Command("selfname", SelfName, "selfname"));
-			Commands.ChatCommands.Add(new Command("tshock.canchat", Chat, "chat"));
+			//Commands.ChatCommands.Add(new Command("tshock.canchat", Chat, "chat"));
 		}
 
 		private void ChanName(CommandArgs args)
 		{
-			if (args.Player == null) return;
+			if (args.Player == null)
+				return;
 
 			if (args.Parameters.Count < 2)
 			{
@@ -67,20 +66,44 @@ namespace ChangeName
 			}
 			else if (foundplr.Count > 1)
 			{
-				args.Player.SendErrorMessage(string.Format("More than one ({0}) player matched!", args.Parameters.Count));
+				TShock.Utils.SendMultipleMatchError(args.Player, foundplr.Select(p => p.Name));
 				return;
 			}
 
 			string newName = args.Parameters[1];
 			bool hidden = args.Parameters.Count > 2;
 
+			#region Checks
+			if (newName.Length < 2)
+			{
+				args.Player.SendMessage("A name must be at least 2 characters long.", Color.DeepPink);
+				return;
+			}
+
+			if (newName.Length > 20)
+			{
+				args.Player.SendMessage("A name must not be longer than 20 characters.", Color.DeepPink);
+				return;
+			}
+
+			List<TSPlayer> SameName = TShock.Players.Where(player => (player != null && player.Name == newName)).ToList();
+			if (SameName.Count > 0)
+			{
+				args.Player.SendMessage("This name is taken by another player.", Color.DeepPink);
+				return;
+			}
+			#endregion Checks
+
 			var plr = foundplr[0];
 			string oldName = plr.TPlayer.name;
-			if (!hidden) TShock.Utils.Broadcast(string.Format("{0} has changed {1}'s name to {2}.", args.Player.Name, oldName, newName), Color.DeepPink);
-			else args.Player.SendMessage(string.Format("You have secretly changed {0}'s name to {1}.", oldName, newName), Color.DeepPink);
+			if (!args.Player.ContainsData("oldname"))
+				args.Player.SetData("oldname", oldName);
+			if (!hidden)
+				TShock.Utils.Broadcast(string.Format("{0} has changed {1}'s name to {2}.", args.Player.Name, oldName, newName), Color.DeepPink);
+			else
+				args.Player.SendMessage(string.Format("You have secretly changed {0}'s name to {1}.", oldName, newName), Color.DeepPink);
 			plr.TPlayer.name = newName;
 			NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, plr.TPlayer.name, args.Player.Index, 0, 0, 0, 0);
-			oldNames[newName] = oldName;
 		}
 
 		private void SelfName(CommandArgs args)
@@ -117,9 +140,10 @@ namespace ChangeName
 			#endregion Checks
 
 			string oldName = plr.TPlayer.name;
+			if (!args.Player.ContainsData("oldname"))
+				plr.SetData("oldname", oldName);
 			plr.TPlayer.name = newName;
 			NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, plr.TPlayer.name, args.Player.Index, 0, 0, 0, 0);
-			oldNames[newName] = oldName;
 			TShock.Utils.Broadcast(string.Format("{0} has changed his name to {1}.", oldName, newName), Color.DeepPink);
 		}
 
@@ -133,8 +157,24 @@ namespace ChangeName
 				return;
 			}
 			var name = String.Join(" ", args.Parameters);
-			if (oldNames.ContainsKey(name)) args.Player.SendMessage(string.Format("{0}'s old name is {1}.", name, oldNames[name]), Color.DeepPink);
-			else args.Player.SendMessage(string.Format("{0}'s name has not been changed.", name), Color.DeepPink);
+
+			var plist = TShock.Utils.FindPlayer(name);
+
+			if (plist.Count == 0)
+			{
+				args.Player.SendErrorMessage("No player found by the name " + name);
+				return;
+			}
+			else if (plist.Count > 1)
+			{
+				TShock.Utils.SendMultipleMatchError(args.Player, plist.Select(p => p.Name));
+				return;
+			}
+
+			if (plist[0].ContainsData("oldname"))
+				args.Player.SendMessage(string.Format("{0}'s old name is {1}.", name, plist[0].GetData<string>("oldname")), Color.DeepPink);
+			else
+				args.Player.SendMessage(string.Format("{0}'s name has not been changed.", name), Color.DeepPink);
 		}
 
 		private void Chat(CommandArgs args)
