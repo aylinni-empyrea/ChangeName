@@ -2,6 +2,7 @@
  * Credit to Simon311 for original plugin.
 */
 
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
