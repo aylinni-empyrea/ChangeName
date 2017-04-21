@@ -2,17 +2,19 @@
  * Credit to Simon311 for original plugin.
 */
 
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Terraria;
+using Terraria.Localization;
 using TerrariaApi.Server;
 using TShockAPI;
 
 namespace ChangeName
 {
-    [ApiVersion(1, 25)]
+    [ApiVersion(2, 1)]
 
 	public class ChangeName : TerrariaPlugin
 	{
@@ -103,7 +105,7 @@ namespace ChangeName
 			else
 				args.Player.SendMessage(string.Format("You have secretly changed {0}'s name to {1}.", oldName, newName), Color.DeepPink);
 			plr.TPlayer.name = newName;
-			NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, plr.TPlayer.name, args.Player.Index, 0, 0, 0, 0);
+			NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, NetworkText.FromLiteral(plr.TPlayer.name), args.Player.Index);
 		}
 
 		private void SelfName(CommandArgs args)
@@ -143,7 +145,7 @@ namespace ChangeName
 			if (!args.Player.ContainsData("oldname"))
 				plr.SetData("oldname", oldName);
 			plr.TPlayer.name = newName;
-			NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, plr.TPlayer.name, args.Player.Index, 0, 0, 0, 0);
+			NetMessage.SendData((int)PacketTypes.PlayerInfo, -1, -1, NetworkText.FromLiteral(plr.TPlayer.name), args.Player.Index);
 			TShock.Utils.Broadcast(string.Format("{0} has changed his name to {1}.", oldName, newName), Color.DeepPink);
 		}
 
